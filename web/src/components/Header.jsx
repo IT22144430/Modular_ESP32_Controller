@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { HiMenu, HiX } from "react-icons/hi";
+import { FaBolt, FaBell } from "react-icons/fa6";
 
 const Header = ({
   title,
@@ -31,7 +32,7 @@ const Header = ({
           {/* Logo and Title */}
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <div className="text-2xl sm:text-4xl animate-pulse flex-shrink-0">
-              <i className="fas fa-bolt"></i>
+              <FaBolt />
             </div>
             <div className="min-w-0">
               <h1 className="text-base sm:text-xl lg:text-2xl font-bold m-0 truncate">{title}</h1>
@@ -54,7 +55,7 @@ const Header = ({
               className="bg-white/20 border-none text-white p-2 sm:py-2 sm:px-4 rounded-full cursor-pointer text-sm sm:text-base transition-all hover:bg-white/30 hover:scale-105"
               title="Test Alert System"
             >
-              <i className="fas fa-bell"></i>
+              <FaBell />
             </button>
           )}
         </div>

@@ -16,12 +16,12 @@ const CardHeader = ({ children, className = "" }) => {
   );
 };
 
-const CardTitle = ({ icon, children, iconColor, className = "" }) => {
+const CardTitle = ({ icon: Icon, children, iconColor, className = "" }) => {
   return (
     <div
       className={`text-lg font-semibold flex items-center gap-2 ${className}`}
     >
-      {icon && <i className={`${icon} text-2xl ${iconColor}`}></i>}
+      {Icon && <Icon className={`text-2xl ${iconColor}`} />}
       <span>{children}</span>
     </div>
   );

@@ -15,6 +15,19 @@ import {
   Filler,
 } from "chart.js";
 import { useMQTT, TOPICS } from "../hooks/useMQTT";
+import {
+  FaPlugCircleXmark,
+  FaClock,
+  FaBolt,
+  FaBatteryHalf,
+  FaChartLine,
+  FaChartColumn,
+  FaBatteryThreeQuarters,
+  FaTable,
+  FaDownload,
+  FaTrashCan,
+  FaDatabase,
+} from "react-icons/fa6";
 
 ChartJS.register(
   CategoryScale,
@@ -61,8 +74,6 @@ const History = () => {
       } catch (e) {
         console.error("Error parsing history data:", e);
       }
-    } else if (topic === TOPICS.VOLTAGE || topic === TOPICS.VOLTAGE2) {
-      storeDashboardData(topic, message);
     }
   };
 
@@ -100,49 +111,6 @@ const History = () => {
         ? powerCutHistory.reduce((sum, event) => sum + event.drop, 0) / total
         : 0;
     setAvgVoltageDrop(avgDrop.toFixed(2));
-  };
-
-  const storeDashboardData = (topic, value) => {
-    const saved = localStorage.getItem("dashboardChartData");
-    if (saved) {
-      try {
-        const chartState = JSON.parse(saved);
-        const voltage = parseFloat(value);
-        const now = new Date().toLocaleTimeString();
-        const dataIndex = chartState.dataPointIndex || 0;
-
-        if (topic === TOPICS.VOLTAGE) {
-          if (dataIndex < 60) {
-            chartState.channel1Labels[dataIndex] = now;
-            chartState.channel1Data[dataIndex] = voltage;
-          } else {
-            chartState.channel1Labels.shift();
-            chartState.channel1Labels.push(now);
-            chartState.channel1Data.shift();
-            chartState.channel1Data.push(voltage);
-          }
-        } else if (topic === TOPICS.VOLTAGE2) {
-          if (dataIndex < 60) {
-            chartState.channel2Labels[dataIndex] = now;
-            chartState.channel2Data[dataIndex] = voltage;
-          } else {
-            chartState.channel2Labels.shift();
-            chartState.channel2Labels.push(now);
-            chartState.channel2Data.shift();
-            chartState.channel2Data.push(voltage);
-          }
-
-          if (dataIndex < 60) {
-            chartState.dataPointIndex = dataIndex + 1;
-          }
-        }
-
-        chartState.timestamp = Date.now();
-        localStorage.setItem("dashboardChartData", JSON.stringify(chartState));
-      } catch (e) {
-        console.error("Error storing dashboard data:", e);
-      }
-    }
   };
 
   const clearHistory = () => {
@@ -254,194 +222,196 @@ const History = () => {
       <div className="min-h-[calc(100vh-60px)] sm:min-h-[calc(100vh-80px)]">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="p-3 sm:p-4 md:p-6 lg:p-8 lg:ml-[250px] overflow-y-auto max-w-[1400px] mx-auto w-full">
+        <main className="p-3 sm:p-4 md:p-6 lg:p-8 lg:ml-[250px] overflow-y-auto">
           {/* Statistics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-card-dark rounded-2xl p-6 shadow-custom transition-all hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-4xl p-3 rounded-xl bg-primary-red/10 text-primary-red">
-                <i className="fas fa-plug-circle-xmark"></i>
+            <div className="bg-card-dark rounded-2xl p-6 shadow-custom transition-all hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]">
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-4xl p-3 rounded-xl bg-primary-red/10 text-primary-red">
+                  <FaPlugCircleXmark />
+                </div>
+              </div>
+              <div className="text-4xl font-bold my-2">{totalPowerCuts}</div>
+              <div className="text-sm opacity-70">Total Power Cuts</div>
+            </div>
+
+            <div className="bg-card-dark rounded-2xl p-6 shadow-custom transition-all hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]">
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-4xl p-3 rounded-xl bg-primary-yellow/10 text-primary-yellow">
+                  <FaClock />
+                </div>
+              </div>
+              <div className="text-4xl font-bold my-2">{totalDuration}m</div>
+              <div className="text-sm opacity-70">Total Downtime</div>
+            </div>
+
+            <div className="bg-card-dark rounded-2xl p-6 shadow-custom transition-all hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]">
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-4xl p-3 rounded-xl bg-primary-purple/10 text-primary-purple">
+                  <FaBolt />
+                </div>
+              </div>
+              <div className="text-4xl font-bold my-2">{totalEnergy} mWh</div>
+              <div className="text-sm opacity-70">Total Battery Usage</div>
+            </div>
+
+            <div className="bg-card-dark rounded-2xl p-6 shadow-custom transition-all hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]">
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-4xl p-3 rounded-xl bg-primary-blue/10 text-primary-blue">
+                  <FaBatteryHalf />
+                </div>
+              </div>
+              <div className="text-4xl font-bold my-2">{avgVoltageDrop} V</div>
+              <div className="text-sm opacity-70">Avg Voltage Drop</div>
+            </div>
+          </div>
+
+          {/* Voltage Drainage Chart */}
+          <div className="bg-card-dark rounded-2xl p-6 shadow-custom mb-8">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-primary-blue/20">
+              <div className="text-xl font-semibold flex items-center gap-3">
+                <FaChartLine className="text-2xl text-primary-red" />
+                Battery Voltage Drainage Over Time
               </div>
             </div>
-            <div className="text-4xl font-bold my-2">{totalPowerCuts}</div>
-            <div className="text-sm opacity-70">Total Power Cuts</div>
+            <div className="h-[400px] relative">
+              <Line data={voltageChartData} options={chartOptions} />
+            </div>
           </div>
 
-          <div className="bg-card-dark rounded-2xl p-6 shadow-custom transition-all hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-4xl p-3 rounded-xl bg-primary-yellow/10 text-primary-yellow">
-                <i className="fas fa-clock"></i>
+          {/* Power Cuts Timeline Chart */}
+          <div className="bg-card-dark rounded-2xl p-6 shadow-custom mb-8">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-primary-blue/20">
+              <div className="text-xl font-semibold flex items-center gap-3">
+                <FaChartColumn className="text-2xl text-primary-purple" />
+                Power Cut Duration Timeline
               </div>
             </div>
-            <div className="text-4xl font-bold my-2">{totalDuration}m</div>
-            <div className="text-sm opacity-70">Total Downtime</div>
+            <div className="h-[400px] relative">
+              <Bar data={durationChartData} options={chartOptions} />
+            </div>
           </div>
 
-          <div className="bg-card-dark rounded-2xl p-6 shadow-custom transition-all hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-4xl p-3 rounded-xl bg-primary-purple/10 text-primary-purple">
-                <i className="fas fa-bolt"></i>
+          {/* Energy Consumption Chart */}
+          <div className="bg-card-dark rounded-2xl p-6 shadow-custom mb-8">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-primary-blue/20">
+              <div className="text-xl font-semibold flex items-center gap-3">
+                <FaBatteryThreeQuarters className="text-2xl text-primary-blue" />
+                Battery Energy Consumption
               </div>
             </div>
-            <div className="text-4xl font-bold my-2">{totalEnergy} mWh</div>
-            <div className="text-sm opacity-70">Total Battery Usage</div>
+            <div className="h-[400px] relative">
+              <Line data={energyChartData} options={chartOptions} />
+            </div>
           </div>
 
-          <div className="bg-card-dark rounded-2xl p-6 shadow-custom transition-all hover:-translate-y-1 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-4xl p-3 rounded-xl bg-primary-blue/10 text-primary-blue">
-                <i className="fas fa-battery-half"></i>
+          {/* History Table */}
+          <div className="bg-card-dark rounded-2xl p-6 shadow-custom mb-8">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-primary-blue/20">
+              <div className="text-xl font-semibold flex items-center gap-3">
+                <FaTable className="text-2xl text-primary-green" />
+                Detailed Power Cut Log
               </div>
+              <button
+                onClick={exportData}
+                className="py-2.5 px-6 bg-gradient-to-br from-primary-green to-[#45B849] text-white border-none rounded-lg cursor-pointer font-semibold flex items-center gap-2 transition-all hover:scale-105 hover:shadow-[0_5px_15px_rgba(80,200,120,0.3)]"
+              >
+                <FaDownload /> Export CSV
+              </button>
             </div>
-            <div className="text-4xl font-bold my-2">{avgVoltageDrop} V</div>
-            <div className="text-sm opacity-70">Avg Voltage Drop</div>
-          </div>
-        </div>
 
-        {/* Voltage Drainage Chart */}
-        <div className="bg-card-dark rounded-2xl p-6 shadow-custom mb-8">
-          <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-primary-blue/20">
-            <div className="text-xl font-semibold flex items-center gap-3">
-              <i className="fas fa-chart-line text-2xl text-primary-red"></i>
-              Battery Voltage Drainage Over Time
+            <div className="flex gap-4 mb-6 flex-wrap">
+              <button className="py-2.5 px-5 border-2 border-primary-blue bg-transparent text-primary-blue rounded-lg cursor-pointer font-semibold transition-all hover:bg-primary-blue hover:text-white bg-primary-blue text-white">
+                All Events
+              </button>
+              <button
+                onClick={clearHistory}
+                className="py-2.5 px-5 border-2 border-primary-red bg-transparent text-primary-red rounded-lg cursor-pointer font-semibold transition-all hover:bg-primary-red hover:text-white"
+              >
+                <FaTrashCan /> Clear History
+              </button>
             </div>
-          </div>
-          <div className="h-[400px] relative">
-            <Line data={voltageChartData} options={chartOptions} />
-          </div>
-        </div>
 
-        {/* Power Cuts Timeline Chart */}
-        <div className="bg-card-dark rounded-2xl p-6 shadow-custom mb-8">
-          <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-primary-blue/20">
-            <div className="text-xl font-semibold flex items-center gap-3">
-              <i className="fas fa-chart-bar text-2xl text-primary-purple"></i>
-              Power Cut Duration Timeline
-            </div>
-          </div>
-          <div className="h-[400px] relative">
-            <Bar data={durationChartData} options={chartOptions} />
-          </div>
-        </div>
-
-        {/* Energy Consumption Chart */}
-        <div className="bg-card-dark rounded-2xl p-6 shadow-custom mb-8">
-          <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-primary-blue/20">
-            <div className="text-xl font-semibold flex items-center gap-3">
-              <i className="fas fa-battery-three-quarters text-2xl text-primary-blue"></i>
-              Battery Energy Consumption
-            </div>
-          </div>
-          <div className="h-[400px] relative">
-            <Line data={energyChartData} options={chartOptions} />
-          </div>
-        </div>
-
-        {/* History Table */}
-        <div className="bg-card-dark rounded-2xl p-6 shadow-custom mb-8">
-          <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-primary-blue/20">
-            <div className="text-xl font-semibold flex items-center gap-3">
-              <i className="fas fa-table text-2xl text-primary-green"></i>
-              Detailed Power Cut Log
-            </div>
-            <button
-              onClick={exportData}
-              className="py-2.5 px-6 bg-gradient-to-br from-primary-green to-[#45B849] text-white border-none rounded-lg cursor-pointer font-semibold flex items-center gap-2 transition-all hover:scale-105 hover:shadow-[0_5px_15px_rgba(80,200,120,0.3)]"
-            >
-              <i className="fas fa-download"></i> Export CSV
-            </button>
-          </div>
-
-          <div className="flex gap-4 mb-6 flex-wrap">
-            <button className="py-2.5 px-5 border-2 border-primary-blue bg-transparent text-primary-blue rounded-lg cursor-pointer font-semibold transition-all hover:bg-primary-blue hover:text-white bg-primary-blue text-white">
-              All Events
-            </button>
-            <button
-              onClick={clearHistory}
-              className="py-2.5 px-5 border-2 border-primary-red bg-transparent text-primary-red rounded-lg cursor-pointer font-semibold transition-all hover:bg-primary-red hover:text-white"
-            >
-              <i className="fas fa-trash"></i> Clear History
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead className="bg-gradient-to-br from-primary-blue to-[#667eea] text-white">
-                <tr>
-                  <th className="p-4 text-left border-b border-white/10">#</th>
-                  <th className="p-4 text-left border-b border-white/10">
-                    Date & Time
-                  </th>
-                  <th className="p-4 text-left border-b border-white/10">
-                    Duration
-                  </th>
-                  <th className="p-4 text-left border-b border-white/10">
-                    Start Voltage
-                  </th>
-                  <th className="p-4 text-left border-b border-white/10">
-                    End Voltage
-                  </th>
-                  <th className="p-4 text-left border-b border-white/10">
-                    Voltage Drop
-                  </th>
-                  <th className="p-4 text-left border-b border-white/10">
-                    Energy Used
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {powerCutHistory.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead className="bg-gradient-to-br from-primary-blue to-[#667eea] text-white">
                   <tr>
-                    <td colSpan="7" className="text-center py-12 opacity-60">
-                      <i className="fas fa-database text-6xl mb-4 block"></i>
-                      <p>No power cut events recorded yet</p>
-                    </td>
+                    <th className="p-4 text-left border-b border-white/10">
+                      #
+                    </th>
+                    <th className="p-4 text-left border-b border-white/10">
+                      Date & Time
+                    </th>
+                    <th className="p-4 text-left border-b border-white/10">
+                      Duration
+                    </th>
+                    <th className="p-4 text-left border-b border-white/10">
+                      Start Voltage
+                    </th>
+                    <th className="p-4 text-left border-b border-white/10">
+                      End Voltage
+                    </th>
+                    <th className="p-4 text-left border-b border-white/10">
+                      Voltage Drop
+                    </th>
+                    <th className="p-4 text-left border-b border-white/10">
+                      Energy Used
+                    </th>
                   </tr>
-                ) : (
-                  powerCutHistory
-                    .slice()
-                    .reverse()
-                    .map((event, index) => {
-                      const durationMin = (event.duration / 60000).toFixed(2);
-                      const durationClass =
-                        durationMin < 1
-                          ? "bg-primary-green/20 text-primary-green"
-                          : durationMin < 5
-                          ? "bg-[rgba(255,165,0,0.2)] text-[#FFA500]"
-                          : "bg-primary-red/20 text-primary-red";
+                </thead>
+                <tbody>
+                  {powerCutHistory.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="text-center py-12 opacity-60">
+                        <FaDatabase className="text-6xl mb-4 block mx-auto" />
+                        <p>No power cut events recorded yet</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    powerCutHistory
+                      .slice()
+                      .reverse()
+                      .map((event, index) => {
+                        const durationMin = (event.duration / 60000).toFixed(2);
+                        const durationClass =
+                          durationMin < 1
+                            ? "bg-primary-green/20 text-primary-green"
+                            : durationMin < 5
+                            ? "bg-[rgba(255,165,0,0.2)] text-[#FFA500]"
+                            : "bg-primary-red/20 text-primary-red";
 
-                      return (
-                        <tr
-                          key={index}
-                          className="transition-all hover:bg-primary-blue/10 border-b border-white/10"
-                        >
-                          <td className="p-4">
-                            {powerCutHistory.length - index}
-                          </td>
-                          <td className="p-4">{event.timestamp}</td>
-                          <td className="p-4">
-                            <span
-                              className={`inline-block py-1.5 px-3 rounded-full text-sm font-semibold ${durationClass}`}
-                            >
-                              {durationMin} min
-                            </span>
-                          </td>
-                          <td className="p-4">{event.startV.toFixed(2)} V</td>
-                          <td className="p-4">{event.endV.toFixed(2)} V</td>
-                          <td className="p-4 font-semibold text-primary-red">
-                            -{event.drop.toFixed(2)} V
-                          </td>
-                          <td className="p-4 font-semibold text-primary-purple">
-                            {(event.energy || 0).toFixed(2)} mWh
-                          </td>
-                        </tr>
-                      );
-                    })
-                )}
-              </tbody>
-            </table>
+                        return (
+                          <tr
+                            key={index}
+                            className="transition-all hover:bg-primary-blue/10 border-b border-white/10"
+                          >
+                            <td className="p-4">
+                              {powerCutHistory.length - index}
+                            </td>
+                            <td className="p-4">{event.timestamp}</td>
+                            <td className="p-4">
+                              <span
+                                className={`inline-block py-1.5 px-3 rounded-full text-sm font-semibold ${durationClass}`}
+                              >
+                                {durationMin} min
+                              </span>
+                            </td>
+                            <td className="p-4">{event.startV.toFixed(2)} V</td>
+                            <td className="p-4">{event.endV.toFixed(2)} V</td>
+                            <td className="p-4 font-semibold text-primary-red">
+                              -{event.drop.toFixed(2)} V
+                            </td>
+                            <td className="p-4 font-semibold text-primary-purple">
+                              {(event.energy || 0).toFixed(2)} mWh
+                            </td>
+                          </tr>
+                        );
+                      })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
         </main>
       </div>
     </>

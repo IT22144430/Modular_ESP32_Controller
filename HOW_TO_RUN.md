@@ -1,4 +1,4 @@
-# 🚀 HOW TO RUN - ESP32 IoT Monitoring System
+# 🚀 HOW TO RUN - ESP32 IoT Monitoring System (React + Vite)
 ---
 
 ## 📋 Table of Contents
@@ -7,7 +7,7 @@
 2. [Hardware Setup](#hardware-setup)
 3. [Software Installation](#software-installation)
 4. [ESP32 Firmware Upload](#esp32-firmware-upload)
-5. [Web Dashboard Setup](#web-dashboard-setup)
+5. [React Web Dashboard Setup](#react-web-dashboard-setup)
 6. [Running the System](#running-the-system)
 7. [Testing & Verification](#testing--verification)
 8. [Troubleshooting](#troubleshooting)
@@ -26,11 +26,11 @@
 - **Optional**: External LEDs for GPIO 13 and GPIO 14
 
 ### Software
-- **Windows OS** (current setup)
+- **Windows OS** (or Linux/macOS)
 - **Visual Studio Code** with PlatformIO extension
-- **Node.js** (v14 or higher) - Download from [nodejs.org](https://nodejs.org/)
+- **Node.js** (v16 or higher) - Download from [nodejs.org](https://nodejs.org/)
 - **Git** (optional, for version control)
-- **Web Browser** (Chrome, Firefox, or Edge)
+- **Modern Web Browser** (Chrome, Firefox, or Edge with WebSocket support)
 
 ### Network
 - **WiFi Network** with internet access
@@ -101,13 +101,14 @@ Binary Input → Percentage
 
 ### Step 3: Install Node.js
 
-1. Download from [nodejs.org](https://nodejs.org/) (LTS version recommended)
+1. Download from [nodejs.org](https://nodejs.org/) (LTS version 16+ recommended)
 2. Run installer
 3. Accept default settings
-4. Verify installation:
+4. **Important**: Check "Automatically install necessary tools" (for node-gyp)
+5. Verify installation:
    ```powershell
-   node --version
-   npm --version
+   node --version  # Should show v16.x.x or higher
+   npm --version   # Should show 8.x.x or higher
    ```
 
 ---
@@ -121,14 +122,14 @@ Binary Input → Percentage
 3. Select **Open Project**
 4. Navigate to:
    ```
-   C:\Users\chami\OneDrive\Documents\PlatformIO\Projects\Mqtt connection
+   d:\Projects\Modular_ESP32_Controller
    ```
 5. Click **Open**
 
 ### Step 2: Configure WiFi Credentials
 
-1. Open `src/main.cpp`
-2. Find lines 18-19:
+1. Open `include/config.h`
+2. Find the WiFi settings section:
    ```cpp
    const char* ssid = "Chamix";
    const char* password = "12345678";
@@ -175,47 +176,66 @@ Binary Input → Percentage
 
 ---
 
-## 🌐 Web Dashboard Setup
+## 🌐 React Web Dashboard Setup
 
 ### Step 1: Navigate to Web Directory
 
 Open PowerShell or Command Prompt:
 ```powershell
-cd "C:\Users\chami\OneDrive\Desktop\Projects\IOT\MQTT Connection\web"
+cd "d:\Projects\Modular_ESP32_Controller\web"
 ```
 
 ### Step 2: Install Dependencies
 
-First time only:
+**First time only** - Install all React and Node.js dependencies:
 ```powershell
 npm install
 ```
 
-This installs:
-- Express.js (web server)
-- MQTT.js (browser MQTT client)
+This installs the complete technology stack:
+- **React 18.3.1** - UI library
+- **Vite 5.4.21** - Build tool and development server
+- **React Router 6.22.0** - Client-side routing
+- **Tailwind CSS 3.4.3** - Styling framework
+- **Chart.js 4.4.0** & react-chartjs-2 5.2.0 - Data visualization
+- **MQTT.js 5.3.5** - WebSocket MQTT client
+- **React Icons 5.5.0** - Icon library
+- **PostCSS & Autoprefixer** - CSS processing
 
-### Step 3: Start the Web Server
+### Step 3: Start the Vite Development Server
 
 ```powershell
-npm start
+npm run dev
 ```
 
-You should see:
+You should see output like:
 ```
-=============================================
-🌐 IoT Monitoring System - GLOBAL ACCESS
-=============================================
-📡 Local Access:    http://localhost:3000
-🌍 Network Access:  http://[YOUR_IP]:3000
-📊 Dashboard:       http://localhost:3000/dashboard.html
-📈 History:         http://localhost:3000/history.html
-🎛️  Control:         http://localhost:3000/global-control.html
-🔌 MQTT Broker:     wss://broker.hivemq.com:8884/mqtt
-=============================================
+  VITE v5.4.21  ready in 500 ms
+
+  ➜  Local:   http://localhost:3001/
+  ➜  Network: http://192.168.x.x:3001/
+  ➜  press h + enter to show help
 ```
 
-**Keep this terminal window open** - the server must run continuously.
+**Important Notes:**
+- The React app runs on **port 3001** (not 3000)
+- Vite provides Hot Module Replacement (HMR) for instant updates
+- **Keep this terminal window open** - the server must run continuously
+- Changes to React files will automatically reload in the browser
+
+### Step 4: Build for Production (Optional)
+
+To create an optimized production build:
+```powershell
+npm run build
+```
+
+This creates a `dist/` folder with optimized static files.
+
+To preview the production build:
+```powershell
+npm run preview
+```
 
 ---
 
@@ -227,40 +247,57 @@ You should see:
 - Connect ESP32 via USB or external power
 - Built-in LED will blink rapidly during WiFi connection
 - LED will stay solid once connected
+- Check Serial Monitor for confirmation:
+  ```
+  === ESP32 MQTT LED Controller (Modular) ===
+  ✓ Hardware initialized
+  ✓ WiFi Connected! IP: 192.168.x.x
+  ✓ MQTT Connected
+  ```
 
-#### 2. Start Web Server (if not running)
+#### 2. Start Vite Development Server (if not running)
 ```powershell
-cd "C:\Users\chami\OneDrive\Desktop\Projects\IOT\MQTT Connection\web"
-npm start
+cd "d:\Projects\Modular_ESP32_Controller\web"
+npm run dev
 ```
 
-#### 3. Access Dashboard
+#### 3. Access React Dashboard
 
 Open your web browser and navigate to:
 ```
-http://localhost:3000/dashboard.html
+http://localhost:3001/
 ```
+
+The React application will automatically redirect you to the Dashboard page.
 
 #### 4. Verify System Status
 
 Check the dashboard shows:
-- **MQTT Status**: Connected (green)
+- **MQTT Status**: Connected (green badge in header)
 - **Light Intensity**: Current reading (0-100%)
-- **Battery Voltage/Current**: Real-time values
-- **Main Power Voltage/Current**: Real-time values
+- **Battery Voltage/Current**: Real-time values with live charts
+- **Main Power Voltage/Current**: Real-time values with live charts
 - **Power Status**: Normal (green) or Power Cut (red)
+- **Charts**: Updating smoothly at 2 samples per second
 
 ---
 
-## 🎮 Using the Dashboard
+## 🎮 Using the React Dashboard
 
-### Main Dashboard (`/dashboard.html`)
+### Main Dashboard Page (`/`)
+
+The Dashboard is a modern React application with real-time monitoring capabilities.
 
 #### Real-Time Monitoring
-- **Light Intensity Gauge**: Visual 0-100% display
-- **Battery Monitor**: Voltage (V), Current (A), Power (W)
-- **Main Power Monitor**: Voltage (V), Current (A), Power (W)
-- **Live Charts**: Historical data visualization
+- **Light Intensity Display**: Live percentage (0-100%) with visual indicator
+- **Dual Voltage Charts**: 
+  - Battery Monitor (Channel 1): Real-time chart with 60-sample history
+  - Main Power Monitor (Channel 2): Real-time chart with 60-sample history
+  - Charts update at 2 samples per second with smooth 300ms animations
+  - Data persists across page navigation using LocalStorage
+  - X-axis shows real-time timestamps
+- **Power Calculations**: Automatic V × A = W calculations
+- **Connection Status**: Live MQTT connection indicator in header
 
 #### Manual Controls
 - **Built-in LED**: Toggle ON/OFF (GPIO 2)
@@ -269,28 +306,30 @@ Check the dashboard shows:
 - **Emergency Light**: Manual ON/OFF control (GPIO 27)
 
 #### Features
-- **Command Log**: View all MQTT messages
-- **Theme Toggle**: Switch between dark/light mode
-- **Auto-Scroll**: Follow latest updates
-- **Power Cut Alerts**: Visual and text notifications
+- **Data Persistence**: Charts retain 60 samples even when navigating away
+- **Lazy Initialization**: Fast page loads with LocalStorage-backed state
+- **Throttled Updates**: Performance-optimized with 500ms update intervals
+- **Smooth Animations**: 300ms linear transitions for chart updates
+- **Responsive Design**: Mobile-friendly layout with Tailwind CSS
 
-### History Page (`/history.html`)
+### History Page (`/history`)
 
-View power cut event history:
-- Timestamp of each event
-- Duration of power cut
-- Starting voltage
-- Ending voltage
-- Voltage drop (ΔV)
-- Energy consumed (Wh)
-- Export data to CSV
+View comprehensive power cut analytics with interactive visualizations:
+- **Power Cut Statistics**: Total events, total duration, energy consumption
+- **Voltage Drainage Chart**: Line chart showing voltage drop patterns
+- **Duration Timeline**: Bar chart of power cut durations over time
+- **Energy Consumption Chart**: Line chart of energy used during outages
+- **Detailed Event Table**: Timestamp, duration, voltages, energy for each event
+- **Export to CSV**: Download power cut history for external analysis
+- **Full-Width Layout**: Optimized for data visualization
 
-### Global Control (`/global-control.html`)
+### Navigation
 
-Simplified remote control interface:
-- Quick toggle switches
-- Status indicators
-- Minimal design for mobile access
+The React Router provides seamless navigation:
+- **Header Navigation**: Click "Dashboard" or "History" to switch pages
+- **Responsive Sidebar**: Mobile menu with hamburger icon
+- **Browser History**: Full support for back/forward buttons
+- **No Page Reloads**: SPA architecture for instant navigation
 
 ---
 
@@ -298,24 +337,36 @@ Simplified remote control interface:
 
 ### Test 1: Basic LED Control
 
-1. Open dashboard: `http://localhost:3000/dashboard.html`
+1. Open dashboard: `http://localhost:3001/`
 2. Click **Built-in LED** toggle → LED on ESP32 should light up
 3. Click again → LED should turn off
 4. Check Serial Monitor for confirmation messages
+5. Verify toggle button updates in real-time
 
 ### Test 2: Light Intensity Reading
 
 1. Connect 3-bit binary input to GPIO 32, 33, 35
 2. Change input values (000 to 111)
 3. Dashboard should update with percentage (0-100%)
+4. Verify the light intensity display updates immediately
 
-### Test 3: Power Monitoring
+### Test 3: Real-Time Charts and Data Persistence
 
 1. Verify INA3221 is properly connected
 2. Dashboard should show:
-   - Battery voltage and current
-   - Main power voltage and current
-   - Calculated power (V × A)
+   - Battery voltage chart updating in real-time
+   - Main power voltage chart updating in real-time
+   - Charts display last 60 samples with timestamps
+   - Update rate: 2 samples per second
+3. **Test Data Persistence**:
+   - Watch charts update for 10-15 seconds
+   - Navigate to History page (click in header)
+   - Return to Dashboard page
+   - Verify charts still show the previous data (no reset)
+   - Charts should continue updating from where they left off
+4. **Test Smooth Animations**:
+   - Observe chart lines animate smoothly (300ms transitions)
+   - No jumps or discontinuities in the graph
 
 ### Test 4: Emergency Power Cut Simulation
 
@@ -335,11 +386,32 @@ Simplified remote control interface:
    - If light intensity < 40%, Emergency Light (GPIO27) turns ON
 5. Restore power > 9.0V → System returns to normal
 
-### Test 5: Manual Emergency Override
+### Test 5: Manual Emergency Override & History
 
 1. Click **Emergency Light** toggle on dashboard
 2. GPIO27 should turn ON regardless of power status
-3. This overrides automatic emergency logic
+3. Navigate to History page (`/history`)
+4. Verify power cut history displays with charts:
+   - Voltage drainage chart
+   - Duration timeline (bar chart)
+   - Energy consumption chart
+   - Detailed event table
+5. Test CSV export functionality
+
+### Test 6: React Router Navigation
+
+1. Start on Dashboard page
+2. Click "History" in header → Should navigate instantly without reload
+3. Click "Dashboard" → Should return to Dashboard page
+4. Use browser back button → Should navigate between pages
+5. Verify MQTT connection stays alive during navigation
+
+### Test 7: Responsive Design
+
+1. Resize browser window to mobile size (<768px width)
+2. Verify sidebar collapses to hamburger menu
+3. Verify charts remain readable
+4. Test mobile navigation works correctly
 
 ---
 
@@ -386,23 +458,27 @@ Solution:
 
 ### Web Dashboard Issues
 
-#### Problem: Web Server Won't Start
+#### Problem: Vite Dev Server Won't Start
 ```
 Solution:
-1. Verify Node.js is installed: node --version
-2. Run: npm install (in web directory)
-3. Check port 3000 is not in use
-4. Try different port: PORT=8080 npm start
+1. Verify Node.js is installed: node --version (v16+ required)
+2. Delete node_modules and package-lock.json
+3. Run: npm install (in web directory)
+4. Check port 3001 is not in use
+5. Try different port: npm run dev -- --port 3002
+6. Check console for specific error messages
 ```
 
-#### Problem: Dashboard Not Updating
+#### Problem: Dashboard Not Updating / Charts Frozen
 ```
 Solution:
-1. Open browser console (F12)
+1. Open browser DevTools console (F12)
 2. Check for WebSocket connection errors
-3. Verify MQTT broker is accessible
-4. Clear browser cache (Ctrl+Shift+Delete)
+3. Verify MQTT broker is accessible (broker.hivemq.com)
+4. Clear browser cache and LocalStorage (Ctrl+Shift+Delete)
 5. Check ESP32 is publishing data (Serial Monitor)
+6. Verify no JavaScript errors in console
+7. Try hard refresh (Ctrl+Shift+R)
 ```
 
 #### Problem: MQTT Connection Failed (Browser)
@@ -410,25 +486,48 @@ Solution:
 Solution:
 1. Verify internet connection
 2. Check browser allows WebSocket connections
-3. Try different browser
-4. Check firewall settings
-5. Verify wss://broker.hivemq.com:8884/mqtt is accessible
+3. Try different browser (Chrome recommended)
+4. Verify wss://broker.hivemq.com:8884/mqtt is accessible
+5. Check browser console for connection error details
+6. Disable browser extensions that might block WebSockets
+```
+
+#### Problem: Charts Show Old Data / Not Persisting
+```
+Solution:
+1. Check browser LocalStorage is enabled
+2. Open DevTools → Application → Local Storage → http://localhost:3001
+3. Verify chartData1, chartData2 keys exist with data
+4. Clear LocalStorage if corrupted: localStorage.clear()
+5. Refresh page and let charts repopulate
+```
+
+#### Problem: Build Errors with npm run build
+```
+Solution:
+1. Ensure all dependencies are installed: npm install
+2. Check Node.js version is 16+ : node --version
+3. Delete node_modules: Remove-Item -Recurse -Force node_modules
+4. Delete package-lock.json: Remove-Item package-lock.json
+5. Reinstall: npm install
+6. Try build again: npm run build
 ```
 
 ### Network Issues
 
-#### Problem: Can't Access from Other Devices
+#### Problem: Can't Access from Other Devices on Network
 ```
 Solution:
 1. Get your computer's local IP:
    PowerShell: ipconfig
-   Look for "IPv4 Address"
-2. Ensure devices are on same WiFi network
-3. Access via: http://[YOUR_IP]:3000
-4. Check Windows Firewall allows port 3000
-5. Add firewall rule:
+   Look for "IPv4 Address" (e.g., 192.168.1.100)
+2. Vite automatically shows network URL when starting:
+   ➜ Network: http://192.168.x.x:3001/
+3. Ensure devices are on same WiFi network
+4. Check Windows Firewall allows port 3001:
    Control Panel → Windows Defender Firewall → Advanced Settings
-   → Inbound Rules → New Rule → Port 3000
+   → Inbound Rules → New Rule → Port 3001 → Allow connection
+5. Try accessing from other device: http://[YOUR_IP]:3001/
 ```
 
 ---
@@ -437,68 +536,174 @@ Solution:
 
 ### Change MQTT Topics
 
-Edit `src/main.cpp` (lines 25-40):
+Edit `include/config.h` in the ESP32 firmware:
 ```cpp
 const char* mqtt_topic = "your/custom/topic";
-// Update corresponding topics in dashboard.html
 ```
 
-### Change WiFi at Runtime
+Then update the corresponding topics in the React application:
+Edit `web/src/hooks/useMQTT.js` and `web/src/pages/Dashboard.jsx`
 
-Currently requires re-upload. For WiFi Manager:
-1. Add WiFiManager library to platformio.ini
-2. Implement captive portal setup
+### Adjust Chart Update Rate
 
-### Enable OTA Updates
+Edit `web/src/pages/Dashboard.jsx`:
+```javascript
+// Change throttle interval (default: 500ms = 2 samples/sec)
+const THROTTLE_INTERVAL = 500; // milliseconds
 
-See `BLUETOOTH_OTA_GUIDE.md` for Bluetooth OTA setup.
+// Change sample storage count (default: 60)
+const MAX_DATA_POINTS = 60; // number of samples
+
+// Change animation duration (default: 300ms)
+animation: {
+  duration: 300, // milliseconds
+}
+```
+
+### Customize Chart Appearance
+
+Edit chart options in `web/src/pages/Dashboard.jsx`:
+```javascript
+// Change colors
+borderColor: 'rgb(59, 130, 246)', // Blue
+backgroundColor: 'rgba(59, 130, 246, 0.1)',
+
+// Change line thickness
+borderWidth: 2,
+
+// Enable/disable animations
+animation: {
+  duration: 0, // Disable animations
+}
+```
 
 ### Adjust Emergency Thresholds
 
-In `src/main.cpp`:
+In `include/config.h`:
 ```cpp
 const float POWER_CUT_THRESHOLD = 9.0;  // Change voltage threshold
 const unsigned long EMERGENCY_DURATION = 60000;  // Change duration (ms)
 const unsigned long GPIO14_DELAY = 200;  // Change GPIO14 delay (ms)
+const int LIGHT_THRESHOLD = 40; // Change light intensity threshold (%)
 ```
 
-### Deploy to Cloud
+### Enable Production Build
 
-For internet access without port forwarding:
-
-**Option 1: ngrok**
+For optimized deployment:
 ```powershell
-# Install ngrok
-# Run: ngrok http 3000
-# Access via: https://[random].ngrok.io
+cd "d:\Projects\Modular_ESP32_Controller\web"
+npm run build
 ```
 
-**Option 2: Heroku**
+This creates a `dist/` folder with:
+- Minified JavaScript bundles
+- Optimized CSS
+- Compressed assets
+- Production-ready index.html
+
+Deploy the `dist/` folder to any static hosting service:
+- **Vercel**: `vercel deploy`
+- **Netlify**: Drag and drop dist folder
+- **GitHub Pages**: Push dist to gh-pages branch
+- **Azure Static Web Apps**: Connect GitHub repo
+
+### Configure LocalStorage Persistence
+
+Edit `web/src/pages/Dashboard.jsx` to change storage keys:
+```javascript
+// Change storage keys
+const STORAGE_KEY_CHART1 = 'myapp_chartData1';
+const STORAGE_KEY_CHART2 = 'myapp_chartData2';
+
+// Change save delay
+const SAVE_DELAY = 1000; // milliseconds
+```
+
+### Deploy to Cloud (Internet Access)
+
+**Option 1: Vercel (Recommended for React + Vite)**
 ```powershell
-# Deploy web server to Heroku
-git init
-heroku create
-git push heroku main
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy from web directory
+cd "d:\Projects\Modular_ESP32_Controller\web"
+vercel deploy
+
+# Follow prompts, get live URL: https://your-app.vercel.app
 ```
 
-**Option 3: Render/Vercel**
-- Push code to GitHub
-- Deploy from Render.com or Vercel.com
+**Option 2: Netlify**
+```powershell
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Build and deploy
+npm run build
+netlify deploy --prod --dir=dist
+```
+
+**Option 3: GitHub Pages**
+```powershell
+# Build the app
+npm run build
+
+# Install gh-pages
+npm install -D gh-pages
+
+# Add to package.json scripts:
+# "deploy": "gh-pages -d dist"
+
+# Deploy
+npm run deploy
+```
+
+**Option 4: Azure Static Web Apps**
+- Connect your GitHub repository
+- Set build command: `npm run build`
+- Set output directory: `dist`
+- Azure automatically deploys on git push
 
 ---
 
 ## 📊 System Architecture
 
 ```
-┌─────────────────────┐         ┌───────────────────┐         ┌─────────────────────┐
-│   Web Dashboard     │         │   MQTT Broker     │         │       ESP32         │
-│  (Any Browser)      │────────▶│ (HiveMQ Cloud)    │────────▶│    + INA3221        │
-│  localhost:3000     │         │ broker.hivemq.com │         │    + Sensors        │
-│                     │◀────────│                   │◀────────│    GPIO Controls    │
-└─────────────────────┘         └───────────────────┘         └─────────────────────┘
-     WebSocket                        Internet                      WiFi
-   wss://...8884/mqtt                MQTT Port 1883               USB/COM4
+┌──────────────────────────┐         ┌────────────────────┐         ┌─────────────────────┐
+│   React Dashboard        │         │   MQTT Broker      │         │       ESP32         │
+│   (Vite + React)         │         │   (HiveMQ Cloud)   │         │    + INA3221        │
+│   localhost:3001         │────────▶│ broker.hivemq.com  │────────▶│    + Sensors        │
+│                          │         │                    │         │    GPIO Controls    │
+│   Components:            │◀────────│   MQTT Topics      │◀────────│    Modular C++      │
+│   - Dashboard.jsx        │         │   Port 1883 (TCP)  │         │                     │
+│   - History.jsx          │         │   Port 8884 (WSS)  │         └─────────────────────┘
+│   - useMQTT hook         │         │                    │              WiFi Connection
+│                          │         └────────────────────┘              USB/COM Port
+└──────────────────────────┘              Internet
+   React Router                         WebSocket (WSS)
+   Chart.js Visualization              MQTT.js Client
+   LocalStorage Persistence
 ```
+
+### Technology Flow
+
+1. **ESP32 Firmware** (Modular C++)
+   - `main.cpp` → Entry point
+   - `hardware.cpp` → GPIO & sensor control
+   - `network.cpp` → WiFi & MQTT communication
+   - `config.h` → Configuration constants
+   
+2. **MQTT Communication**
+   - ESP32 publishes sensor data every 500ms
+   - React app subscribes via WebSocket
+   - Bidirectional control messages
+   
+3. **React Application**
+   - Vite dev server with HMR
+   - React Router for navigation
+   - useMQTT custom hook manages connection
+   - Chart.js visualizes real-time data
+   - LocalStorage persists chart history
 
 ---
 
@@ -527,31 +732,52 @@ git push heroku main
 
 ## 🎯 Quick Reference Commands
 
-### ESP32 Upload
+### ESP32 Firmware
 ```powershell
-# From PlatformIO Projects folder
-cd "C:\Users\chami\OneDrive\Documents\PlatformIO\Projects\Mqtt connection"
-# Use PlatformIO UI → Upload
+# Navigate to project
+cd "d:\Projects\Modular_ESP32_Controller"
+
+# Build firmware
+pio run -e esp32dev
+
+# Upload to ESP32
+pio run -e esp32dev --target upload
+
+# Open serial monitor
+pio device monitor -b 115200
+
+# Clean build
+pio run -t clean
 ```
 
-### Web Server
+### React Web Application
 ```powershell
-# Start server
-cd "C:\Users\chami\OneDrive\Desktop\Projects\IOT\MQTT Connection\web"
-npm start
+# Navigate to web directory
+cd "d:\Projects\Modular_ESP32_Controller\web"
 
 # Install dependencies (first time)
 npm install
 
-# Check Node.js version
-node --version
+# Start development server (port 3001)
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Check for outdated packages
+npm outdated
+
+# Update dependencies
+npm update
 ```
 
-### Serial Monitor
-```powershell
-# From PlatformIO UI → Monitor
-# OR manually:
-# Use Arduino IDE → Tools → Serial Monitor → 115200 baud
+### Browser Access
+```
+Local:    http://localhost:3001/
+Network:  http://[YOUR_IP]:3001/
 ```
 
 ---
@@ -560,29 +786,55 @@ node --version
 
 1. **Keep Serial Monitor Open**: Essential for debugging and seeing real-time ESP32 logs
 
-2. **Web Server Must Run**: The web server (`npm start`) must be running to access the dashboard
+2. **Vite Dev Server Must Run**: Execute `npm run dev` to access the React dashboard
 
-3. **Same Network**: For local access, devices must be on the same WiFi network
+3. **Port 3001**: The React application runs on port 3001 (not 3000)
 
-4. **Internet Required**: Both ESP32 and web browser need internet to connect to MQTT broker
+4. **Same Network**: For local network access, devices must be on the same WiFi
 
-5. **USB Power**: ESP32 can be powered via USB or external 5V supply
+5. **Internet Required**: Both ESP32 and web browser need internet to connect to MQTT broker
 
-6. **Backup Configuration**: Save your WiFi credentials before uploading new firmware
+6. **USB Power**: ESP32 can be powered via USB or external 5V supply
 
-7. **Emergency Mode**: Automatic emergency light activation only works when main power < 9.0V
+7. **Backup Configuration**: Save your WiFi credentials in `include/config.h` before updates
 
-8. **Manual Override**: Manual emergency light control overrides automatic logic
+8. **Emergency Mode**: Automatic emergency light activation works when main power < 9.0V
+
+9. **Manual Override**: Manual emergency light control overrides automatic logic
+
+10. **Data Persistence**: Chart data persists in browser LocalStorage (60 samples per chart)
+
+11. **React Hot Reload**: Vite automatically reloads changes - no manual refresh needed
+
+12. **Browser Compatibility**: Use modern browsers (Chrome 90+, Firefox 88+, Edge 90+)
+
+13. **LocalStorage Limits**: Browser LocalStorage limited to ~5-10MB per domain
 
 ---
 
 ## 📞 Support & Documentation
 
-- **Project Documentation**: `PROJECT_DOCUMENTATION.md`
-- **Arduino Code**: `MQTT Connection/test2/test2.ino`
-- **Main Firmware**: `Mqtt connection/src/main.cpp`
-- **Web Dashboard**: `MQTT Connection/web/dashboard.html`
-- **OTA Guide**: `BLUETOOTH_OTA_GUIDE.md`
+- **[Main README](README.md)** - Project overview and features
+- **[React App Documentation](web/README.md)** - Comprehensive React application guide
+- **[Project Documentation](PROJECT_DOCUMENTATION.md)** - Detailed system architecture
+- **ESP32 Firmware** - Modular C++ code in `src/` directory
+- **React Source Code** - Component-based architecture in `web/src/`
+
+### Key Documentation Files
+
+1. **web/README.md** - Complete React app documentation including:
+   - Technology stack details (React, Vite, Tailwind, Chart.js, MQTT.js)
+   - Component API reference
+   - Custom hooks documentation
+   - Chart configuration
+   - LocalStorage schema
+   - Troubleshooting guide
+   - Development workflows
+
+2. **include/config.h** - ESP32 configuration constants
+3. **web/src/pages/Dashboard.jsx** - Main monitoring interface (1030 lines)
+4. **web/src/pages/History.jsx** - Analytics and history (450 lines)
+5. **web/src/hooks/useMQTT.js** - MQTT connection management
 
 ---
 
@@ -590,26 +842,55 @@ node --version
 
 Before running the system:
 
+**Hardware Setup:**
 - [ ] ESP32 properly wired with all sensors connected
-- [ ] INA3221 on I2C bus (SDA=21, SCL=22)
-- [ ] WiFi credentials updated in `main.cpp`
+- [ ] INA3221 on I2C bus (SDA=GPIO21, SCL=GPIO22)
+- [ ] Light intensity sensor connected (GPIO 32, 33, 35)
+- [ ] Emergency light wired to GPIO27
+- [ ] Control LEDs on GPIO13 and GPIO14 (optional)
+- [ ] USB cable connected (or external 5V power)
+
+**Software Setup:**
+- [ ] Visual Studio Code installed with PlatformIO extension
+- [ ] Node.js v16+ installed and verified (`node --version`)
+- [ ] WiFi credentials updated in `include/config.h`
 - [ ] COM port verified in `platformio.ini`
 - [ ] Firmware successfully uploaded to ESP32
+- [ ] React dependencies installed (`npm install` in web directory)
+
+**System Verification:**
 - [ ] ESP32 shows "WiFi Connected" in Serial Monitor
-- [ ] Node.js installed and verified
-- [ ] npm dependencies installed in web folder
-- [ ] Web server running (`npm start`)
-- [ ] Dashboard accessible at `http://localhost:3000`
-- [ ] MQTT connection status shows "Connected"
-- [ ] Light intensity sensor connected and reading
-- [ ] Power monitoring channels showing voltage/current
+- [ ] ESP32 shows "MQTT Connected" in Serial Monitor  
+- [ ] Vite dev server running (`npm run dev`)
+- [ ] Dashboard accessible at `http://localhost:3001/`
+- [ ] MQTT connection status shows "Connected" in header
+- [ ] Light intensity sensor reading and displaying
+- [ ] Voltage charts updating in real-time
+- [ ] Charts persist when navigating between pages
+- [ ] Control buttons responsive and updating status
+
+**Performance Checks:**
+- [ ] Charts update at 2 samples per second
+- [ ] Smooth 300ms animations on chart updates
+- [ ] No discontinuities or holes in graphs
+- [ ] Data persists after page refresh
+- [ ] History page loads with analytics
 
 ---
 
 ## 🎉 You're Ready!
 
-If all checks pass, your ESP32 IoT Monitoring System is fully operational!
+If all checks pass, your ESP32 IoT Monitoring System with React dashboard is fully operational!
 
-Access your dashboard at: **http://localhost:3000/dashboard.html**
+**Access your dashboard at:** `http://localhost:3001/`
 
-Monitor in real-time, control remotely, and enjoy your intelligent power backup system! 🚀
+### What You Can Do:
+
+✅ Monitor real-time voltage with interactive charts  
+✅ Control GPIO outputs remotely via MQTT  
+✅ View power cut history and analytics  
+✅ Export data to CSV for external analysis  
+✅ Access from any device on your network  
+✅ Deploy to cloud for global access  
+
+**Enjoy your intelligent power backup system with modern React interface! 🚀**

@@ -11,6 +11,11 @@ import {
   Legend,
   Filler,
 } from "chart.js";
+import { 
+  FaLightbulb, FaGear, FaSun, FaCircleHalfStroke, FaBatteryThreeQuarters,
+  FaWifi, FaTriangleExclamation, FaBolt, FaPlug, FaTerminal,
+  FaPowerOff, FaCircleCheck, FaPlug as FaPlugAlt, FaFire, FaBolt as FaBoltAlt
+} from "react-icons/fa6";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { Card, CardHeader, CardTitle } from "../components/Card";
@@ -46,45 +51,179 @@ const Dashboard = () => {
   const [powerCutStatus, setPowerCutStatus] = useState("NORMAL");
   const [commandLogs, setCommandLogs] = useState([]);
 
-  const [chartData1, setChartData1] = useState({
-    labels: Array(60).fill(""),
-    datasets: [
-      {
-        label: "Voltage (V)",
-        data: Array(60).fill(null),
-        borderColor: "rgb(74, 144, 226)",
-        backgroundColor: "rgba(74, 144, 226, 0.2)",
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 0,
-        pointHoverRadius: 5,
-        spanGaps: false,
-      },
-    ],
+  // Lazy initialize chart data from localStorage
+  const [chartData1, setChartData1] = useState(() => {
+    try {
+      const saved = localStorage.getItem("dashboardChartData");
+      if (saved) {
+        const chartState = JSON.parse(saved);
+        if (chartState.labels1 && chartState.data1) {
+          return {
+            labels: chartState.labels1,
+            datasets: [
+              {
+                label: "Voltage (V)",
+                data: chartState.data1,
+                borderColor: "rgb(74, 144, 226)",
+                backgroundColor: "rgba(74, 144, 226, 0.2)",
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                spanGaps: true,
+              },
+            ],
+          };
+        }
+      }
+    } catch (e) {
+      console.error("Error loading chart data 1:", e);
+    }
+    return {
+      labels: Array(60).fill(""),
+      datasets: [
+        {
+          label: "Voltage (V)",
+          data: Array(60).fill(null),
+          borderColor: "rgb(74, 144, 226)",
+          backgroundColor: "rgba(74, 144, 226, 0.2)",
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          spanGaps: true,
+        },
+      ],
+    };
   });
 
-  const [chartData2, setChartData2] = useState({
-    labels: Array(60).fill(""),
-    datasets: [
-      {
-        label: "Voltage (V)",
-        data: Array(60).fill(null),
-        borderColor: "rgb(157, 78, 221)",
-        backgroundColor: "rgba(157, 78, 221, 0.2)",
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 0,
-        pointHoverRadius: 5,
-        spanGaps: false,
-      },
-    ],
+  const [chartData2, setChartData2] = useState(() => {
+    try {
+      const saved = localStorage.getItem("dashboardChartData");
+      if (saved) {
+        const chartState = JSON.parse(saved);
+        if (chartState.labels2 && chartState.data2) {
+          return {
+            labels: chartState.labels2,
+            datasets: [
+              {
+                label: "Voltage (V)",
+                data: chartState.data2,
+                borderColor: "rgb(157, 78, 221)",
+                backgroundColor: "rgba(157, 78, 221, 0.2)",
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                spanGaps: true,
+              },
+            ],
+          };
+        }
+      }
+    } catch (e) {
+      console.error("Error loading chart data 2:", e);
+    }
+    return {
+      labels: Array(60).fill(""),
+      datasets: [
+        {
+          label: "Voltage (V)",
+          data: Array(60).fill(null),
+          borderColor: "rgb(157, 78, 221)",
+          backgroundColor: "rgba(157, 78, 221, 0.2)",
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          spanGaps: true,
+        },
+      ],
+    };
   });
 
-  const [avgVoltage1, setAvgVoltage1] = useState(0);
-  const [avgVoltage2, setAvgVoltage2] = useState(0);
-  const dataPointIndex = useRef(0);
+  const [avgVoltage1, setAvgVoltage1] = useState(() => {
+    try {
+      const saved = localStorage.getItem("dashboardChartData");
+      if (saved) {
+        const chartState = JSON.parse(saved);
+        return chartState.avgVoltage1 || 0;
+      }
+    } catch (e) {
+      console.error("Error loading avg1:", e);
+    }
+    return 0;
+  });
+
+  const [avgVoltage2, setAvgVoltage2] = useState(() => {
+    try {
+      const saved = localStorage.getItem("dashboardChartData");
+      if (saved) {
+        const chartState = JSON.parse(saved);
+        return chartState.avgVoltage2 || 0;
+      }
+    } catch (e) {
+      console.error("Error loading avg2:", e);
+    }
+    return 0;
+  });
+
+  const dataPointIndex = useRef(
+    (() => {
+      try {
+        const saved = localStorage.getItem("dashboardChartData");
+        if (saved) {
+          const chartState = JSON.parse(saved);
+          return chartState.dataPointIndex || 0;
+        }
+      } catch (e) {
+        console.error("Error loading index:", e);
+      }
+      return 0;
+    })()
+  );
+
+  const saveTimerRef = useRef(null);
+
+  const latestVoltage1 = useRef(
+    (() => {
+      try {
+        const saved = localStorage.getItem("dashboardChartData");
+        if (saved) {
+          const chartState = JSON.parse(saved);
+          const data = chartState.data1 || [];
+          const index = chartState.dataPointIndex || 0;
+          return data[index - 1] || 0;
+        }
+      } catch (e) {
+        console.error("Error loading latest v1:", e);
+      }
+      return 0;
+    })()
+  );
+
+  const latestVoltage2 = useRef(
+    (() => {
+      try {
+        const saved = localStorage.getItem("dashboardChartData");
+        if (saved) {
+          const chartState = JSON.parse(saved);
+          const data = chartState.data2 || [];
+          const index = chartState.dataPointIndex || 0;
+          return data[index - 1] || 0;
+        }
+      } catch (e) {
+        console.error("Error loading latest v2:", e);
+      }
+      return 0;
+    })()
+  );
+
+  const lastChartUpdate = useRef(Date.now());
 
   const handleMessage = (topic, message) => {
     switch (topic) {
@@ -119,12 +258,16 @@ const Dashboard = () => {
       case TOPICS.VOLTAGE:
         const v1 = parseFloat(message);
         setVoltage1(v1);
-        updateChart(v1, voltage2);
+        latestVoltage1.current = v1;
+        // Update chart with latest values from both sensors
+        updateChart(latestVoltage1.current, latestVoltage2.current);
         break;
       case TOPICS.VOLTAGE2:
         const v2 = parseFloat(message);
         setVoltage2(v2);
-        updateChart(voltage1, v2);
+        latestVoltage2.current = v2;
+        // Update chart with latest values from both sensors
+        updateChart(latestVoltage1.current, latestVoltage2.current);
         break;
       case TOPICS.CURRENT:
         setCurrent1(parseFloat(message));
@@ -164,20 +307,34 @@ const Dashboard = () => {
   const { connectionStatus, publish } = useMQTT(handleMessage);
 
   const updateChart = (v1, v2) => {
-    const now = new Date().toLocaleTimeString();
+    // Throttle updates to max 2 per second (500ms minimum interval)
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastChartUpdate.current;
+
+    if (timeSinceLastUpdate < 500) {
+      // Too soon, skip this update
+      return;
+    }
+
+    lastChartUpdate.current = now;
+    const timestamp = new Date().toLocaleTimeString();
+    const currentIndex = dataPointIndex.current;
+    const isInitialFill = currentIndex < 60;
 
     setChartData1((prev) => {
       const newData = [...prev.datasets[0].data];
       const newLabels = [...prev.labels];
 
-      if (dataPointIndex.current < 60) {
-        newLabels[dataPointIndex.current] = now;
-        newData[dataPointIndex.current] = v1;
+      if (isInitialFill) {
+        // Initial fill: add data sequentially
+        newData[currentIndex] = v1;
+        newLabels[currentIndex] = timestamp;
       } else {
-        newLabels.shift();
-        newLabels.push(now);
+        // Sliding window: shift old data out, add new data at end
         newData.shift();
         newData.push(v1);
+        newLabels.shift();
+        newLabels.push(timestamp);
       }
 
       const validData = newData.filter((val) => val !== null);
@@ -198,15 +355,16 @@ const Dashboard = () => {
       const newData = [...prev.datasets[0].data];
       const newLabels = [...prev.labels];
 
-      if (dataPointIndex.current < 60) {
-        newLabels[dataPointIndex.current] = now;
-        newData[dataPointIndex.current] = v2;
-        dataPointIndex.current++;
+      if (isInitialFill) {
+        // Initial fill: add data sequentially
+        newData[currentIndex] = v2;
+        newLabels[currentIndex] = timestamp;
       } else {
-        newLabels.shift();
-        newLabels.push(now);
+        // Sliding window: shift old data out, add new data at end
         newData.shift();
         newData.push(v2);
+        newLabels.shift();
+        newLabels.push(timestamp);
       }
 
       const validData = newData.filter((val) => val !== null);
@@ -222,7 +380,46 @@ const Dashboard = () => {
         datasets: [{ ...prev.datasets[0], data: newData }],
       };
     });
+
+    dataPointIndex.current++;
   };
+
+  const saveChartDataToStorage = () => {
+    try {
+      const chartState = {
+        labels1: chartData1.labels,
+        data1: chartData1.datasets[0].data,
+        labels2: chartData2.labels,
+        data2: chartData2.datasets[0].data,
+        avgVoltage1,
+        avgVoltage2,
+        dataPointIndex: dataPointIndex.current,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("dashboardChartData", JSON.stringify(chartState));
+    } catch (e) {
+      console.error("Error saving chart data:", e);
+    }
+  };
+
+  // Throttled save - only save once per second to prevent performance issues
+  const throttledSave = () => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    saveTimerRef.current = setTimeout(() => {
+      saveChartDataToStorage();
+    }, 1000);
+  };
+
+  // Auto-save chart data when it changes (throttled)
+  useEffect(() => {
+    throttledSave();
+  }, [chartData1, chartData2, avgVoltage1, avgVoltage2]);
+  // Auto-save chart data when it changes (throttled)
+  useEffect(() => {
+    throttledSave();
+  }, [chartData1, chartData2, avgVoltage1, avgVoltage2]);
 
   const updatePowerAlert = (status) => {
     if (status === "POWER_CUT") {
@@ -313,6 +510,15 @@ const Dashboard = () => {
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
+
+    // Cleanup timer on unmount
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+      // Final save before unmount
+      saveChartDataToStorage();
+    };
   }, []);
 
   // Custom Chart.js plugin to show latest value on chart
@@ -357,6 +563,17 @@ const Dashboard = () => {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: 300,
+      easing: "linear",
+    },
+    transitions: {
+      active: {
+        animation: {
+          duration: 0,
+        },
+      },
+    },
     plugins: {
       legend: { display: false },
       tooltip: { mode: "index", intersect: false },
@@ -375,8 +592,6 @@ const Dashboard = () => {
       },
       x: {
         type: "category",
-        min: 0,
-        max: 59,
         title: {
           display: true,
           text: "Time",
@@ -416,17 +631,11 @@ const Dashboard = () => {
                 : "bg-primary-green/10 border-l-4 border-primary-green"
             }`}
           >
-            <i
-              className={`fas ${
-                powerCutStatus === "POWER_CUT"
-                  ? "fa-exclamation-triangle"
-                  : "fa-check-circle"
-              } text-4xl ${
-                powerCutStatus === "POWER_CUT"
-                  ? "text-primary-red"
-                  : "text-primary-green"
-              }`}
-            ></i>
+            {powerCutStatus === "POWER_CUT" ? (
+              <FaTriangleExclamation className="text-4xl text-primary-red" />
+            ) : (
+              <FaCircleCheck className="text-4xl text-primary-green" />
+            )}
             <div>
               <h3 className="text-xl font-bold m-0">
                 {powerCutStatus === "POWER_CUT"
@@ -447,7 +656,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle
-                  icon="fas fa-lightbulb"
+                  icon={FaLightbulb}
                   iconColor="text-primary-yellow"
                 >
                   LED Status
@@ -468,13 +677,13 @@ const Dashboard = () => {
                   onClick={() => publish(TOPICS.CONTROL, "ON")}
                   className="py-4 px-4 border-none rounded-xl text-base font-semibold cursor-pointer transition-all flex items-center justify-center gap-2 bg-gradient-to-br from-primary-green to-[#45B849] text-white hover:scale-105 hover:shadow-[0_5px_15px_rgba(0,0,0,0.2)] active:scale-95"
                 >
-                  <i className="fas fa-power-off"></i> Turn ON
+                  <FaPowerOff /> Turn ON
                 </button>
                 <button
                   onClick={() => publish(TOPICS.CONTROL, "OFF")}
                   className="py-4 px-4 border-none rounded-xl text-base font-semibold cursor-pointer transition-all flex items-center justify-center gap-2 bg-gradient-to-br from-primary-red to-[#E85D75] text-white hover:scale-105 hover:shadow-[0_5px_15px_rgba(0,0,0,0.2)] active:scale-95"
                 >
-                  <i className="fas fa-power-off"></i> Turn OFF
+                  <FaPowerOff /> Turn OFF
                 </button>
               </div>
             </Card>
@@ -482,7 +691,7 @@ const Dashboard = () => {
             {/* System Status Card */}
             <Card>
               <CardHeader>
-                <CardTitle icon="fas fa-cog" iconColor="text-primary-blue">
+                <CardTitle icon={FaGear} iconColor="text-primary-blue">
                   System Control
                 </CardTitle>
               </CardHeader>
@@ -526,7 +735,7 @@ const Dashboard = () => {
             {/* Intensity Status Card */}
             <Card>
               <CardHeader>
-                <CardTitle icon="fas fa-sun" iconColor="text-primary-yellow">
+                <CardTitle icon={FaSun} iconColor="text-primary-yellow">
                   Intensity Monitor
                 </CardTitle>
               </CardHeader>
@@ -570,7 +779,7 @@ const Dashboard = () => {
             {/* Light Intensity */}
             <Card>
               <CardHeader>
-                <CardTitle icon="fas fa-adjust" iconColor="text-primary-yellow">
+                <CardTitle icon={FaCircleHalfStroke} iconColor="text-primary-yellow">
                   Light Level
                 </CardTitle>
               </CardHeader>
@@ -586,7 +795,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle
-                  icon="fas fa-battery-three-quarters"
+                  icon={FaBatteryThreeQuarters}
                   iconColor="text-primary-green"
                 >
                   Battery Level
@@ -614,7 +823,7 @@ const Dashboard = () => {
             {/* WiFi Signal */}
             <Card>
               <CardHeader>
-                <CardTitle icon="fas fa-wifi" iconColor="text-primary-blue">
+                <CardTitle icon={FaWifi} iconColor="text-primary-blue">
                   WiFi Signal
                 </CardTitle>
               </CardHeader>
@@ -642,7 +851,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle
-                  icon="fas fa-exclamation-triangle"
+                  icon={FaTriangleExclamation}
                   iconColor="text-primary-red"
                 >
                   Emergency Light
@@ -685,7 +894,7 @@ const Dashboard = () => {
             {/* Voltage & Current Cards */}
             <Card>
               <CardHeader>
-                <CardTitle icon="fas fa-bolt" iconColor="text-primary-green">
+                <CardTitle icon={FaBolt} iconColor="text-primary-green">
                   Main Power
                 </CardTitle>
               </CardHeader>
@@ -695,11 +904,11 @@ const Dashboard = () => {
                 </div>
                 <div className="space-y-2 text-sm text-gray-300">
                   <div className="flex items-center justify-center gap-2">
-                    <i className="fas fa-plug-circle-bolt"></i>
+                    <FaPlugAlt />
                     <span>{current2.toFixed(2)} mA</span>
                   </div>
                   <div className="flex items-center justify-center gap-2">
-                    <i className="fas fa-fire"></i>
+                    <FaFire />
                     <span>{power2.toFixed(2)} mW</span>
                   </div>
                 </div>
@@ -709,7 +918,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle
-                  icon="fas fa-battery-three-quarters"
+                  icon={FaBatteryThreeQuarters}
                   iconColor="text-primary-blue"
                 >
                   5V System
@@ -721,11 +930,11 @@ const Dashboard = () => {
                 </div>
                 <div className="space-y-2 text-sm text-gray-300">
                   <div className="flex items-center justify-center gap-2">
-                    <i className="fas fa-bolt-lightning"></i>
+                    <FaBoltAlt />
                     <span>{current1.toFixed(2)} mA</span>
                   </div>
                   <div className="flex items-center justify-center gap-2">
-                    <i className="fas fa-fire"></i>
+                    <FaFire />
                     <span>{power1.toFixed(2)} mW</span>
                   </div>
                 </div>
@@ -738,7 +947,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle
-                  icon="fas fa-battery-three-quarters"
+                  icon={FaBatteryThreeQuarters}
                   iconColor="text-primary-blue"
                 >
                   5V System - Real-time
@@ -759,7 +968,7 @@ const Dashboard = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle icon="fas fa-plug" iconColor="text-primary-green">
+                <CardTitle icon={FaPlug} iconColor="text-primary-green">
                   Main Power - Real-time
                 </CardTitle>
               </CardHeader>
@@ -780,7 +989,7 @@ const Dashboard = () => {
           {/* Command Log */}
           <Card className="mt-8">
             <CardHeader>
-              <CardTitle icon="fas fa-terminal" iconColor="text-primary-green">
+              <CardTitle icon={FaTerminal} iconColor="text-primary-green">
                 Command Log
               </CardTitle>
               <button

@@ -138,30 +138,44 @@ When main power voltage drops below 9.0V:
 ## 📁 Project Structure
 
 ```
-MQTT Connection/
+Modular_ESP32_Controller/
 ├── README.md                          # This file
 ├── PROJECT_DOCUMENTATION.md           # Detailed documentation
-├── BLUETOOTH_OTA_GUIDE.md            # OTA update guide
+├── HOW_TO_RUN.md                     # Complete setup guide
 ├── MQTT Connection.code-workspace    # VS Code workspace
-├── web/                              # Web dashboard
-│   ├── README.md                     # Web app documentation
-│   ├── server.js                     # Node.js server
-│   ├── dashboard.html                # Main dashboard
-│   ├── history.html                  # Power cut history
-│   ├── global-control.html           # Remote control interface
-│   ├── package.json                  # Dependencies
-│   └── public/
-│       └── index.html                # Landing page
-└── test2/
-    └── test2.ino                     # Arduino test sketch
-
-Mqtt connection/                       # PlatformIO project
-├── README.md                          # Firmware documentation
-├── platformio.ini                     # PlatformIO config
-├── src/
-│   └── main.cpp                      # Main ESP32 firmware
+├── platformio.ini                    # PlatformIO configuration
+├── web/                              # React web dashboard
+│   ├── README.md                     # Comprehensive React app documentation
+│   ├── package.json                  # React dependencies (Vite, React Router, Chart.js, MQTT.js)
+│   ├── vite.config.js                # Vite configuration
+│   ├── tailwind.config.js            # Tailwind CSS configuration
+│   ├── index.html                    # React app entry point
+│   ├── src/                          # React source code
+│   │   ├── App.jsx                   # Main application component
+│   │   ├── main.jsx                  # React entry point
+│   │   ├── index.css                 # Global styles
+│   │   ├── components/               # Reusable React components
+│   │   │   ├── Header.jsx            # Navigation header
+│   │   │   ├── Sidebar.jsx           # Responsive sidebar
+│   │   │   └── Card.jsx              # Dashboard cards
+│   │   ├── pages/                    # Page components
+│   │   │   ├── Dashboard.jsx         # Real-time monitoring dashboard (1030 lines)
+│   │   │   └── History.jsx           # Power cut history analytics (450 lines)
+│   │   └── hooks/                    # Custom React hooks
+│   │       └── useMQTT.js            # MQTT connection management
+│   └── public/                       # Static assets
+├── src/                              # ESP32 firmware (modular C++)
+│   ├── main.cpp                      # Main application entry point
+│   ├── config.cpp                    # Configuration management
+│   ├── globals.cpp                   # Global variables
+│   ├── hardware.cpp                  # Hardware control (GPIO, INA3221, sensors)
+│   └── network.cpp                   # WiFi & MQTT networking
 ├── include/                          # Header files
-├── lib/                              # Libraries
+│   ├── config.h                      # System configuration constants
+│   ├── globals.h                     # Global variable declarations
+│   ├── hardware.h                    # Hardware function declarations
+│   └── network.h                     # Network function declarations
+├── lib/                              # External libraries
 └── test/                             # Test files
 ```
 
@@ -172,56 +186,66 @@ Mqtt connection/                       # PlatformIO project
 ### 1. ESP32 Firmware Setup
 
 ```bash
-cd "C:\Users\chami\OneDrive\Documents\PlatformIO\Projects\Mqtt connection"
+cd "d:\Projects\Modular_ESP32_Controller"
 pio run -e esp32dev --target upload
 pio device monitor
 ```
 
-### 2. Web Dashboard Setup
+### 2. Web Dashboard Setup (React + Vite)
 
 ```bash
-cd "C:\Users\chami\OneDrive\Desktop\Projects\IOT\MQTT Connection\web"
+cd "d:\Projects\Modular_ESP32_Controller\web"
 npm install
-npm start
+npm run dev
 ```
 
 ### 3. Access Dashboard
 
-Open browser: http://localhost:3000/dashboard.html
+Open browser: http://localhost:3001
+
+**Note**: The React application runs on **port 3001** (not 3000) with Vite's development server.
 
 ---
 
 ## 📊 Features
 
-### Real-Time Monitoring
+### Real-Time Monitoring (React Dashboard with Chart.js)
 - ✅ Light intensity percentage (0-100%)
-- ✅ Battery voltage and current
-- ✅ Main power voltage and current
+- ✅ Dual voltage monitoring with live charts (60-sample history)
+- ✅ Battery voltage and current (Channel 1)
+- ✅ Main power voltage and current (Channel 2)
 - ✅ Power calculations (V × A = W)
-- ✅ System status indicators
-- ✅ Connection status
+- ✅ Real-time timestamps on chart x-axis
+- ✅ Data persistence across page navigation (LocalStorage)
+- ✅ Smooth animations (300ms transitions)
+- ✅ 2 samples per second update rate
+- ✅ Connection status indicators
 
-### Control Features
+### Control Features (Interactive Dashboard)
 - ✅ Manual system control (GPIO13)
 - ✅ Manual intensity control (GPIO14)
 - ✅ Manual emergency light control (GPIO27)
 - ✅ Automatic emergency sequence
 - ✅ Toggle switches with real-time feedback
+- ✅ MQTT WebSocket communication
 
-### Data Logging
+### Data Logging & Analytics
 - ✅ Power cut history with timestamps
-- ✅ Duration tracking
+- ✅ Duration tracking and statistics
 - ✅ Voltage drop measurements
 - ✅ Energy consumption during outages
-- ✅ Browser local storage persistence
+- ✅ Browser LocalStorage persistence
+- ✅ Historical charts (voltage drainage, duration timeline, energy consumption)
+- ✅ Export to CSV functionality
 
-### User Interface
-- ✅ Dark/Light theme toggle
+### Modern User Interface (React + Tailwind CSS)
 - ✅ Responsive design (mobile-friendly)
-- ✅ Real-time charts (Chart.js)
-- ✅ Browser notifications
-- ✅ Alert sounds
-- ✅ Command log viewer
+- ✅ Component-based architecture
+- ✅ React Router for navigation
+- ✅ Custom React hooks for MQTT
+- ✅ Lazy initialization for performance
+- ✅ Throttled updates to prevent overload
+- ✅ Real-time chart updates without discontinuities
 
 ---
 
@@ -238,20 +262,34 @@ Open browser: http://localhost:3000/dashboard.html
 
 ## 📖 Documentation
 
-- **[Firmware Documentation](../Mqtt%20connection/README.md)** - ESP32 code details
-- **[Web Dashboard Documentation](web/README.md)** - Web interface guide
-- **[Project Documentation](PROJECT_DOCUMENTATION.md)** - Complete system guide
-- **[OTA Update Guide](BLUETOOTH_OTA_GUIDE.md)** - Wireless updates
+- **[HOW_TO_RUN.md](HOW_TO_RUN.md)** - Complete setup and running guide
+- **[Web Application Guide](web/README.md)** - Comprehensive React app documentation (tech stack, features, API reference)
+- **[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md)** - Complete system architecture and detailed documentation
 
 ---
 
-## 🛠️ Development Tools
+## 🛠️ Technology Stack
 
-- **PlatformIO** - Firmware development
-- **VS Code** - Code editor
-- **Node.js** - Web server
-- **Chart.js** - Data visualization
-- **MQTT.js** - Browser MQTT client
+### Firmware (ESP32)
+- **PlatformIO** - Development environment
+- **Arduino Framework** - ESP32 programming
+- **PubSubClient** - MQTT client library
+- **SDL_Arduino_INA3221** - Triple-channel power monitoring
+
+### Web Dashboard (React Application)
+- **React 18.3.1** - UI library
+- **Vite 5.4.21** - Build tool and dev server
+- **React Router 6.22.0** - Client-side routing
+- **Tailwind CSS 3.4.3** - Utility-first CSS framework
+- **Chart.js 4.4.0** - Data visualization
+- **react-chartjs-2 5.2.0** - React Chart.js wrapper
+- **MQTT.js 5.3.5** - WebSocket MQTT client
+- **React Icons 5.5.0** - Icon library
+
+### Communication
+- **MQTT Protocol** - IoT messaging
+- **WebSocket (WSS)** - Secure browser connection
+- **HiveMQ Cloud** - Public MQTT broker
 
 ---
 
